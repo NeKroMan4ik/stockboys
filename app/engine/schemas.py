@@ -35,8 +35,8 @@ class Player(BaseModel):
     current_tile_id: int
 
     cash: int = 0
-    stocks: Dict[Company, int] = {} # {'AUH20': 3,'ACME': 20...}
-    properties: List[OwnedProperty] = [] # [OwnedProperty(tile_id=29, floors=2), ...]
+    stocks: Dict[Company, int] = {}
+    properties: List[OwnedProperty] = []
     trophies_owned: int = 0
 
     penalties: List[Penalty] = []
