@@ -52,10 +52,7 @@ def get_trophy_unit_price(state: GameState) -> int:
     '''
     trophies_owned = sum(player.trophies_owned for player in state.players)
 
-    if trophies_owned == 0:
-        trophies_owned = 1
-        
-    trophy_value = BASE_TROPHY_COST * trophies_owned
+    trophy_value = BASE_TROPHY_COST * (trophies_owned + 1)
     return trophy_value
 
 def has_tallest_tower(state: GameState, player: Player) -> bool:
@@ -158,7 +155,7 @@ def bankrupt_player(state: GameState, amount: int, creditor_index: int | None) -
 
     return state
 
-def charge_player(state: GameState, amount: int, creditor_index: int | None, target_player_index: int | None = None) -> GameState:
+def charge_player(state: GameState, amount: int, creditor_index: int | None = None, target_player_index: int | None = None) -> GameState:
     '''
     Charge current player, transfers cash to the player with creditor_index. If the creditor_index is None, transfers cash to the lunch pot;
 
