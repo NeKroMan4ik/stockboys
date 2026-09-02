@@ -79,12 +79,9 @@ def handle_ponzi_scheme(state: GameState, payload: dict) -> GameState:
 
     for p in state.players:
         if p != current_player:
-            current_player.cash += 500
-
-            if p.cash >= 500:
-                p.cash -= 500
-            else:
-                p.cash = 0
+            collected = min(p.cash, 500)
+            p.cash -= collected
+            current_player.cash += collected
 
     return state
 
