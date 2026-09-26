@@ -1,8 +1,9 @@
 from enum import Enum
 from pydantic import BaseModel
-from app.engine.schemas import GameState, WildCardType
+from app.engine.schemas import GameState
 
 
+#-----------------game ws---------------------
 class WSAction(str, Enum):
     ROLL = "roll"
     PASS = "pass"
@@ -31,3 +32,18 @@ class WSResponse(BaseModel):
     type: WSResponseType
     game_state: GameState | None = None
     error: str | None = None
+
+
+#----------------lobbies------------------
+class LobbyStatus(str, Enum):
+    WAITING = "waiting"
+    IN_PROGRESS = "in_progress"
+
+class Lobby(BaseModel):
+    lobby_id: str
+    host: str
+    players: list[str] = []
+
+    status = LobbyStatus.WAITING
+    game_id: str | None = None
+

@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.redis_client import client
 from app.routers.ws import router as ws_router
 from app.routers.games import router as games_router
+from app.routers.lobbies import router as lobbies_router
 
 
 @asynccontextmanager
@@ -26,3 +27,4 @@ app.add_middleware(
 
 app.include_router(ws_router)
 app.include_router(games_router)
+app.include_router(lobbies_router)
