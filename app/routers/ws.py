@@ -38,7 +38,10 @@ async def ws_endpoint(ws: WebSocket, game_id: str, player_name: str = Query(...)
     if not any(p.name == player_name for p in state.players):
         await ws.send_text(WSResponse(type=WSResponseType.ERROR, error="player not in the lobby").model_dump_json())
         await ws.close()
+        return
 
+    response = WSResponse(type=WSResponseType.STATE_UPDATE, game_state=state)
+    await ws.send_text(response.model_dump_json())
 
     async def handle_client():
         try:

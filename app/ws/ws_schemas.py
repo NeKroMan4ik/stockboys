@@ -44,6 +44,6 @@ class Lobby(BaseModel):
     host: str
     players: list[str] = []
 
-    status = LobbyStatus.WAITING
+    status: LobbyStatus = LobbyStatus.WAITING
     game_id: str | None = None
 
