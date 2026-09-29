@@ -22,10 +22,13 @@ class CreateLobbyRequest(BaseModel):
 class JoinLobbyRequest(BaseModel):
     player_name: str
 
+class StartLobbyRequest(BaseModel):
+    player_name: str
+
 
 @router.post("")
 async def create_lobby(req: CreateLobbyRequest):
-    lobby = Lobby(lobby_id=str(uuid4), host=req.host, players=[req.host])
+    lobby = Lobby(lobby_id=str(uuid4()), host=req.host, players=[req.host])
     await client.set(f"lobby:{lobby.lobby_id}", lobby.model_dump_json(), ex=settings.game_ttl_seconds)
     await client.sadd(LOBBIES_SET, lobby.lobby_id)
     return {"lobby_id": lobby.lobby_id}
@@ -47,7 +50,7 @@ async def get_list_lobbies():
 
 @router.post("/{lobby_id}/join")
 async def join_lobby(lobby_id: str, req: JoinLobbyRequest):
-    raw = await client.get(f"lobby:{id}")
+    raw = await client.get(f"lobby:{lobby_id}")
     if not raw:
         raise HTTPException(404, "Lobby not found")
 
@@ -60,26 +63,37 @@ async def join_lobby(lobby_id: str, req: JoinLobbyRequest):
     if req.player_name in lobby.players:
         raise HTTPException(400, "Name already taken")
 
-    lobby.plyaers.appen(req.player_name)
+    lobby.plyaers.append(req.player_name)
     await client.set(f"lobby:{lobby_id}", lobby.model_dump_json(), ex=settings.redis.game_ttl_seconds)
     return lobby
 
 @router.post("/{lobby_id}/start")
-async def start_game(lobby_id: str):
-    raw = await client.get(f"lobby{lobby_id}")
+async def start_game(lobby_id: str, req: StartLobbyRequest):
+    raw = await client.get(f"lobby:{lobby_id}")
     if not raw:
         raise HTTPException(404, "Lobby not found")
 
     lobby = Lobby.model_validate_json(raw)
 
+    if req.player_name != lobby.host:
+        raise HTTPException(403, "Only host can start")
     if lobby.status != LobbyStatus.WAITING:
         raise HTTPException(400, "Already started")
-    if len(lobby.players) < 4:
-        raise HTTPException(400, "Need 4 players")
+    '''if len(lobby.players) < 4:
+        raise HTTPException(400, "Need 4 players")'''
 
     state = create_initial_state(lobby.players)
 
     await client.set(state.game_id, state.model_dump_json(), ex=settings.redis.game_ttl_seconds)
 
+    lobby.status = LobbyStatus.IN_PROGRESS
+    lobby.game_id = state.game_id
+
     return {"game_id": state.game_id}
 
+@router.get("/{lobby_id}")
+async def get_lobby(lobby_id: str):
+    raw = await client.get(f"lobby:{lobby_id}")
+    if not raw:
+        raise HTTPException(404, "Lobby not found")
+    return Lobby.model_validate_json(raw)
