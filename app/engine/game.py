@@ -9,7 +9,7 @@ from app.engine.wild_cards import draw_wild_card, process_card_effect
 from app.engine.schemas import (
     Player, PenaltyType, GameState, TurnPhase, 
     Company, OwnedProperty, CellType, PendingDuel,
-    Direction
+    Direction, PlayerSlot
 )
 
 from app.engine.func import (
@@ -27,16 +27,20 @@ from app.engine.func import (
 
 
 # === IMPORTATNT ===
+def create_player(slot: PlayerSlot) -> Player:
+    return Player(
+        username=slot.username,
+        name=slot.character,
+        cash=STARTING_CASH,
+        current_tile_id=START_LANDING_MAP[slot.character],
+    )
 
-def create_initial_state(player_names: list) -> GameState:
-    players = [Player(name=name, cash=STARTING_CASH, current_tile_id=START_LANDING_MAP.get(name, 0)) 
-               for name in player_names]
-
+def create_initial_state(slots: list[PlayerSlot]) -> GameState:
     return GameState(
         game_id=str(uuid4()),
-        players=players,
+        players=[create_player(slot) for slot in slots],
         market_pointer=len(MARKET[1]) // 2,
-        pending_duel=PendingDuel()
+        pending_duel=PendingDuel(),
     )
 
 def process_roll(state: GameState) -> GameState:

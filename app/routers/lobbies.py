@@ -6,7 +6,7 @@ from app.redis_client import client
 from app.ws.ws_schemas import LobbyStatus, Lobby
 from app.config import get_settings
 
-from app.engine.schemas import GameRequest
+from app.engine.schemas import CharacterName, PlayerSlot
 from app.engine.game import create_initial_state
 
 
@@ -17,13 +17,13 @@ router = APIRouter(prefix='/lobbies')
 LOBBIES_SET = 'all_lobbies'
 
 class CreateLobbyRequest(BaseModel):
-    host: str
+    slot: PlayerSlot
 
 class JoinLobbyRequest(BaseModel):
-    player_name: str
+    slot: PlayerSlot
 
 class StartLobbyRequest(BaseModel):
-    player_name: str
+    character: CharacterName
 
 
 @router.post("")

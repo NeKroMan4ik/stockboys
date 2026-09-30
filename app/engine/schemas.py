@@ -1,5 +1,5 @@
 from typing import List, Dict
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from enum import Enum, IntEnum
 
 # === PLAYERS ===
@@ -30,8 +30,19 @@ class Company(IntEnum):
     DOUGH_RAY_AND_ME = 5
     FIASCO_FILMS = 6
 
+class CharacterName(str, Enum):
+    JOHNNY_MUSTARD = "Johnny Mustard"
+    BURL_CUTTERBACK = "Burl Cutterback"
+    TRIPP_DUNWHISTLE = "Tripp Dunwhistle"
+    JOE_SIXPACK = "Joe Sixpack"
+
+class PlayerSlot(BaseModel):
+    username: str
+    character: CharacterName
+
 class Player(BaseModel):
-    name: str
+    username: str
+    name: CharacterName
     current_tile_id: int
 
     cash: int = 0
@@ -44,8 +55,6 @@ class Player(BaseModel):
 
 
 # === BOARD ===
-
-
 class Direction(Enum):
     LEFT = 1
     RIGHT = -1
@@ -153,4 +162,12 @@ class GameState(BaseModel):
     winner_index: int | None = None
 
 class GameRequest(BaseModel):
-    players: list[str]
+    players: list[PlayerSlot] = Field(min_length=1, max_length=4)
+
+    @field_validator("players")
+    @classmethod
+    def characters_must_be_unique(cls, slots: list[PlayerSlot]) -> list[PlayerSlot]:
+        characters = [s.character for s in slots]
+        if len(characters) != len(set(characters)):
+            raise ValueError("each character can only be picked once")
+        return slots

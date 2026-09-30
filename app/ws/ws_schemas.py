@@ -1,6 +1,6 @@
 from enum import Enum
-from pydantic import BaseModel
-from app.engine.schemas import GameState
+from pydantic import BaseModel, Field
+from app.engine.schemas import GameState, CharacterName, PlayerSlot
 
 
 #-----------------game ws---------------------
@@ -41,8 +41,8 @@ class LobbyStatus(str, Enum):
 
 class Lobby(BaseModel):
     lobby_id: str
-    host: str
-    players: list[str] = []
+    host: CharacterName
+    players: list[PlayerSlot] = Field(default_factory=list, max_length=4)
 
     status: LobbyStatus = LobbyStatus.WAITING
     game_id: str | None = None
