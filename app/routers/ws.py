@@ -1,20 +1,19 @@
 import asyncio
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 
 from app.config import get_settings
+from app.redis_client import client
 
 from app.engine.game import (process_roll, process_pass, process_buy_company_shares, process_shareholder_roll, 
                 process_buy_real_estate, process_trophy_buy, process_sell_company_shares, process_build_floors,
                 process_choose_direction, process_vegas_house, process_trigger_vegas_duel, process_duel_refuse,
-                process_duel_resolve, process_card_effect, get_current_player)
-
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
-
-from app.redis_client import client
+                process_duel_resolve, get_current_player)
+from app.engine.wild_cards import process_card_effect
+from app.engine.schemas import GameState
 
 from app.ws.ws_manager import connect, disconnect, broadcast, listen
 from app.ws.ws_schemas import WSRequest, WSAction, WSResponse, WSResponseType
 
-from app.engine.schemas import GameState
 
 
 settings = get_settings()
