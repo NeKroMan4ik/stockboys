@@ -1,11 +1,11 @@
-from app.engine.schemas import BoardTile, CellType, Direction, Company
+from app.engine.schemas import BoardTile, CellType, Direction, Company, CharacterName
 
 
 START_LANDING_MAP = { # starting position for each character
-    "Johnny Mustard": 10,
-    "Burl Cutterback": 5,
-    "Tripp Dunwhistle": 29,
-    "Joe Sixpack": 38,
+    CharacterName.JOHNNY_MUSTARD: 10,
+    CharacterName.BURL_CUTTERBACK: 5,
+    CharacterName.TRIPP_DUNWHISTLE: 29,
+    CharacterName.JOE_SIXPACK: 38,
 }
 
 BOARD = [
