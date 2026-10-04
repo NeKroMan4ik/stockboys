@@ -35,7 +35,7 @@ async def ws_endpoint(ws: WebSocket, game_id: str, character: str = Query(...)):
 
     state = GameState.model_validate_json(raw_state)
 
-    if not any(p.name == character for p in state.players):
+    if not any(p.character == character for p in state.players):
         await ws.send_text(WSResponse(type=WSResponseType.ERROR, error="player not in the lobby").model_dump_json())
         await ws.close()
         return

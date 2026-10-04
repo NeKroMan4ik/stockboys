@@ -28,8 +28,16 @@ class StartLobbyRequest(BaseModel):
 
 @router.post("")
 async def create_lobby(req: CreateLobbyRequest):
-    lobby = Lobby(lobby_id=str(uuid4()), host=req.host, players=[req.host])
-    await client.set(f"lobby:{lobby.lobby_id}", lobby.model_dump_json(), ex=settings.game_ttl_seconds)
+    lobby = Lobby(
+        lobby_id=str(uuid4()),
+        host=req.slot.character,
+        players=[req.slot],
+    )
+    await client.set(
+        f"lobby:{lobby.lobby_id}",
+        lobby.model_dump_json(),
+        ex=settings.redis.game_ttl_seconds,
+    )
     await client.sadd(LOBBIES_SET, lobby.lobby_id)
     return {"lobby_id": lobby.lobby_id}
 
@@ -60,10 +68,10 @@ async def join_lobby(lobby_id: str, req: JoinLobbyRequest):
         raise HTTPException(400, "Game already started")
     if len(lobby.players) >= 4:
         raise HTTPException(400, "Lobby is full")
-    if req.character in lobby.players:
-        raise HTTPException(400, "Name already taken")
+    if any(p.character == req.slot.character for p in lobby.players):
+        raise HTTPException(400, "Character already taken")
 
-    lobby.plyaers.append(req.character)
+    lobby.players.append(req.slot)
     await client.set(f"lobby:{lobby_id}", lobby.model_dump_json(), ex=settings.redis.game_ttl_seconds)
     return lobby
 
@@ -88,6 +96,7 @@ async def start_game(lobby_id: str, req: StartLobbyRequest):
 
     lobby.status = LobbyStatus.IN_PROGRESS
     lobby.game_id = state.game_id
+    await client.set(f"lobby:{lobby_id}", lobby.model_dump_json(), ex=settings.redis.game_ttl_seconds)
 
     return {"game_id": state.game_id}
 
