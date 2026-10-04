@@ -22,20 +22,20 @@ settings = get_settings()
 router = APIRouter()
 
 @router.websocket("/ws/{game_id}")
-async def ws_endpoint(ws: WebSocket, game_id: str, player_name: str = Query(...)):
-    await connect(game_id, player_name, ws)
+async def ws_endpoint(ws: WebSocket, game_id: str, character: str = Query(...)):
+    await connect(game_id, character, ws)
 
     raw_state = await client.get(game_id)
 
     if raw_state is None:
         await ws.send_text(WSResponse(type=WSResponseType.ERROR, error="game not found").model_dump_json())
         await ws.close()
-        disconnect(game_id, player_name)
+        disconnect(game_id, character)
         return
 
     state = GameState.model_validate_json(raw_state)
 
-    if not any(p.name == player_name for p in state.players):
+    if not any(p.name == character for p in state.players):
         await ws.send_text(WSResponse(type=WSResponseType.ERROR, error="player not in the lobby").model_dump_json())
         await ws.close()
         return
@@ -59,7 +59,7 @@ async def ws_endpoint(ws: WebSocket, game_id: str, player_name: str = Query(...)
                 state = GameState.model_validate_json(raw_state)
 
                 # player validation
-                if player_name != get_current_player(state).character:
+                if character != get_current_player(state).character:
                     continue
 
                 match req.action:
@@ -102,7 +102,7 @@ async def ws_endpoint(ws: WebSocket, game_id: str, player_name: str = Query(...)
             pass
 
         finally:
-            disconnect(game_id, player_name)
+            disconnect(game_id, character)
 
     listen_task = asyncio.create_task(listen(game_id, ws))
     client_task = asyncio.create_task(handle_client())
@@ -120,5 +120,5 @@ async def ws_endpoint(ws: WebSocket, game_id: str, player_name: str = Query(...)
         except asyncio.CancelledError:
             pass
  
-    disconnect(game_id, player_name)
+    disconnect(game_id, character)
 

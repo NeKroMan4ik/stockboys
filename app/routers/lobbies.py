@@ -60,10 +60,10 @@ async def join_lobby(lobby_id: str, req: JoinLobbyRequest):
         raise HTTPException(400, "Game already started")
     if len(lobby.players) >= 4:
         raise HTTPException(400, "Lobby is full")
-    if req.player_name in lobby.players:
+    if req.character in lobby.players:
         raise HTTPException(400, "Name already taken")
 
-    lobby.plyaers.append(req.player_name)
+    lobby.plyaers.append(req.character)
     await client.set(f"lobby:{lobby_id}", lobby.model_dump_json(), ex=settings.redis.game_ttl_seconds)
     return lobby
 
@@ -75,7 +75,7 @@ async def start_game(lobby_id: str, req: StartLobbyRequest):
 
     lobby = Lobby.model_validate_json(raw)
 
-    if req.player_name != lobby.host:
+    if req.character != lobby.host:
         raise HTTPException(403, "Only host can start")
     if lobby.status != LobbyStatus.WAITING:
         raise HTTPException(400, "Already started")

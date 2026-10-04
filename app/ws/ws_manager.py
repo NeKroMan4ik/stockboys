@@ -4,13 +4,13 @@ from app.redis_client import client
 rooms: dict[str, dict[str, WebSocket]] = {}
 
 
-async def connect(game_id: str, player_name: str, ws: WebSocket):
+async def connect(game_id: str, character: str, ws: WebSocket):
     await ws.accept()
-    rooms.setdefault(game_id, {})[player_name] = ws
+    rooms.setdefault(game_id, {})[character] = ws
 
-def disconnect(game_id: str, player_name: str):
+def disconnect(game_id: str, character: str):
     if game_id in rooms:
-        rooms[game_id].pop(player_name, None)
+        rooms[game_id].pop(character, None)
 
 async def broadcast(game_id: str, message: str):
     await client.publish(f"game:{game_id}", message)
