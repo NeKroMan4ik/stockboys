@@ -59,7 +59,7 @@ async def ws_endpoint(ws: WebSocket, game_id: str, player_name: str = Query(...)
                 state = GameState.model_validate_json(raw_state)
 
                 # player validation
-                if player_name != get_current_player(state).name:
+                if player_name != get_current_player(state).character:
                     continue
 
                 match req.action:

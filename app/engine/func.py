@@ -147,7 +147,7 @@ def bankrupt_player(state: GameState, amount: int, creditor_index: int | None) -
     else:
         state.free_lunch_pot += payout
 
-    player.current_tile_id = START_LANDING_MAP[player.name]
+    player.current_tile_id = START_LANDING_MAP[player.character]
     player.is_bankrupt = True
     
     if not get_penalty(player, PenaltyType.B):

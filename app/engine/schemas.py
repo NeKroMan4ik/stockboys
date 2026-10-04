@@ -42,7 +42,7 @@ class PlayerSlot(BaseModel):
 
 class Player(BaseModel):
     username: str
-    name: CharacterName
+    character: CharacterName
     current_tile_id: int
 
     cash: int = 0
@@ -92,8 +92,6 @@ class BoardTile(BaseModel):
 
 
 # === WILD CARDS ===
-
-
 class WildCardType(str, Enum):
     FLASH_CRASH = "flash_crash"
     BULL_RUN = "bull_run"
@@ -120,15 +118,14 @@ class WildCard(BaseModel):
 
 
 # === VEGAS ===
-
 class PendingDuel(BaseModel):
     initiator_index: int | None = None
     target_index: int | None = None
     initiator_bet: dict = {}
     target_bet: dict = {}
 
-# === GAMESTATE ===
 
+# === GAMESTATE ===
 class TurnPhase(str, Enum):
     WAITING_ROLL = "waiting_roll"
     WAITING_COMPANY_BUY = "waiting_company_buy"

@@ -4,7 +4,7 @@ from random import randint
 
 from app.engine.constants import STARTING_CASH, BONUS_AMOUNT, TAX_PERCENT, FLOOR_PRICE, BROKER_BLACK_THURSDAY_TAX
 from app.engine.board import BOARD, START_LANDING_MAP, MARKET
-from app.engine.wild_cards import draw_wild_card, process_card_effect
+from app.engine.wild_cards import draw_wild_card
 
 from app.engine.schemas import (
     Player, PenaltyType, GameState, TurnPhase, 
@@ -15,13 +15,11 @@ from app.engine.schemas import (
 from app.engine.func import (
     market_pointer_change, roll, is_double,
     get_current_player, get_current_tile, get_stock_price,
-    get_mortgage_value, get_trophy_unit_price, get_rent,
-    get_tile_owner, get_floors_remaining, get_floors,
-    get_total_properties_cost,
-    has_tallest_tower, get_penalty,
-    bankrupt_blocker, bankrupt_player, charge_player,
-    check_win_condition, pass_turn, get_target_player, validate_equity,
-    transfer_equity,
+    get_trophy_unit_price, get_rent, get_tile_owner,
+    get_floors_remaining, get_floors, get_total_properties_cost,
+    has_tallest_tower, get_penalty, bankrupt_blocker, 
+    charge_player, check_win_condition, pass_turn, 
+    get_target_player, validate_equity, transfer_equity,
 )
 
 
@@ -30,7 +28,7 @@ from app.engine.func import (
 def create_player(slot: PlayerSlot) -> Player:
     return Player(
         username=slot.username,
-        name=slot.character,
+        character=slot.character,
         cash=STARTING_CASH,
         current_tile_id=START_LANDING_MAP[slot.character],
     )
@@ -172,8 +170,7 @@ def process_roll(state: GameState) -> GameState:
 
 
 
-# === NOT SO IMPORTATNT ===
-
+# === PROCESS FUNC ===
 # player actions triggered by tile effects
 def process_pass(state: GameState) -> GameState:
     return pass_turn(state)
