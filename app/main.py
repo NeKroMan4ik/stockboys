@@ -9,6 +9,7 @@ from app.redis_client import client
 from app.routers.ws import router as ws_router
 from app.routers.games import router as games_router
 from app.routers.lobbies import router as lobbies_router
+from app.routers.board import router as board_router
 from app.routers.dev import router as dev_router
 
 print(">>> main.py loaded, debug =", get_settings().app.debug)
@@ -36,3 +37,4 @@ if get_settings().app.debug:
 app.include_router(ws_router)
 app.include_router(games_router)
 app.include_router(lobbies_router)
+app.include_router(board_router)
