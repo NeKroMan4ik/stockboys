@@ -82,7 +82,7 @@ def process_roll(state: GameState) -> GameState:
     landing_tile = BOARD[moving_id]
 
     # market change
-    tile_market_impact = landing_tile.market_impact * landing_tile.direction.value
+    tile_market_impact = landing_tile.market_impact
     state.market_pointer = market_pointer_change(state, tile_market_impact)  
 
     # tile events, always perform checks and set turn_phase at the end
