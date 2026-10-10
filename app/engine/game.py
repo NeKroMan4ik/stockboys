@@ -9,7 +9,7 @@ from app.engine.wild_cards import draw_wild_card
 from app.engine.schemas import (
     Player, PenaltyType, GameState, TurnPhase, 
     Company, OwnedProperty, CellType, PendingDuel,
-    Direction, PlayerSlot
+    Direction, PlayerSlot, PriceChange
 )
 
 from app.engine.func import (
@@ -20,6 +20,7 @@ from app.engine.func import (
     has_tallest_tower, get_penalty, bankrupt_blocker, 
     charge_player, check_win_condition, pass_turn, 
     get_target_player, validate_equity, transfer_equity,
+    set_market_pointer
 )
 
 
@@ -34,15 +35,22 @@ def create_player(slot: PlayerSlot) -> Player:
     )
 
 def create_initial_state(slots: list[PlayerSlot]) -> GameState:
+    pointer = len(MARKET[1]) // 2
+
     return GameState(
         game_id=str(uuid4()),
         players=[create_player(slot) for slot in slots],
-        market_pointer=len(MARKET[1]) // 2,
+        market_pointer=pointer,
         pending_duel=PendingDuel(),
+        price_change={c: PriceChange(
+            old_price=MARKET[c][pointer],
+            new_price=MARKET[c][pointer],
+            diff=0
+        ) for c in Company},
     )
 
 def process_roll(state: GameState) -> GameState:
-    # checks if the player can perform actions
+    # checks if the player can perform an action
     if not state.turn_phase == TurnPhase.WAITING_ROLL:
         return state
 
@@ -83,7 +91,7 @@ def process_roll(state: GameState) -> GameState:
 
     # market change
     tile_market_impact = landing_tile.market_impact
-    state.market_pointer = market_pointer_change(state, tile_market_impact)  
+    state = set_market_pointer(state, market_pointer_change(state, tile_market_impact))
 
     # tile events, always perform checks and set turn_phase at the end
     match landing_tile.type: 

@@ -30,6 +30,11 @@ class Company(IntEnum):
     DOUGH_RAY_AND_ME = 5
     FIASCO_FILMS = 6
 
+class PriceChange(BaseModel):
+    new_price: int
+    old_price: int | None = None
+    diff: float | None = None
+
 class CharacterName(str, Enum):
     JOHNNY_MUSTARD = "Johnny Mustard"
     BURL_CUTTERBACK = "Burl Cutterback"
@@ -141,7 +146,6 @@ class GameState(BaseModel):
     # general
     game_id: str
     players: list[Player]
-    market_pointer: int
     turn_phase: TurnPhase = TurnPhase.WAITING_ROLL
 
     # turns
@@ -149,14 +153,16 @@ class GameState(BaseModel):
     current_turn_index: int = 0
     free_lunch_pot: int = 0
 
-    # vegas
-    pending_duel: PendingDuel | None = None
+    # market
+    market_pointer: int
+    price_change: dict[Company, PriceChange] 
 
     # misc
     creditor_index: int | None = None
     pending_card: WildCardType | None = None
     chosen_direction: Direction | None = None
     winner_index: int | None = None
+    pending_duel: PendingDuel | None = None
 
 class GameRequest(BaseModel):
     players: list[PlayerSlot] = Field(min_length=1, max_length=4)

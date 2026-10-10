@@ -2,7 +2,11 @@ from random import randint
 
 from app.engine.board import BOARD, MARKET, START_LANDING_MAP
 from app.engine.constants import BASE_TROPHY_COST, BASE_RENT_TIERS, REFERENCE_PRICE
-from app.engine.schemas import Player, Penalty, PenaltyType, GameState, TurnPhase, BoardTile, PendingDuel
+from app.engine.schemas import (
+    Player, Penalty, PenaltyType, 
+    GameState, TurnPhase, BoardTile, 
+    PendingDuel, Company, PriceChange
+)
 
 
 def market_pointer_change(state: GameState, impact: int) -> int: 
@@ -54,6 +58,23 @@ def get_trophy_unit_price(state: GameState) -> int:
 
     trophy_value = BASE_TROPHY_COST * (trophies_owned + 1)
     return trophy_value
+
+def set_market_pointer(state: GameState, new_pointer: int) -> GameState:
+    old_pointer = state.market_pointer
+
+    if new_pointer == old_pointer:
+        return state
+
+    for company, change in state.price_change.items():
+        old_price = get_stock_price(company, old_pointer)
+        new_price = get_stock_price(company, new_pointer)
+
+        change.old_price = old_price
+        change.new_price = new_price
+        change.diff = round((new_price - old_price) / old_price * 100, 1)
+
+    state.market_pointer = new_pointer
+    return state
 
 def has_tallest_tower(state: GameState, player: Player) -> bool:
     def max_floors(p: Player) -> int:

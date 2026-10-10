@@ -7,16 +7,15 @@ from app.engine.schemas import WildCard, WildCardType, GameState, Company, Penal
 from app.engine.func import (
     get_current_player, get_stock_price, get_target_player, get_tile_owner,
     get_floors_remaining, market_pointer_change, pass_turn, get_penalty,
+    set_market_pointer
 )
 
 # handlers
 def handle_flash_crash(state: GameState, payload: dict) -> GameState:
-    state.market_pointer = 0
-    return state
+    return set_market_pointer(state, 0)
 
 def handle_bull_run(state: GameState, payload: dict) -> GameState:
-    state.market_pointer = len(MARKET[Company.JETCETERA_AIRLINES]) - 1
-    return state
+    return set_market_pointer(state, len(MARKET[Company.JETCETERA_AIRLINES]) - 1)
 
 def handle_dividend_bomb(state: GameState, payload: dict) -> GameState:
     player = get_current_player(state)
@@ -97,7 +96,7 @@ def handle_quantitative_easing(state: GameState, payload: dict) -> GameState:
 
 def handle_market_manipulation(state: GameState, payload: dict) -> GameState:
     # +5 or -5
-    state.market_pointer = market_pointer_change(state, payload["market_impact"])
+    state.market_pointer = set_market_pointer(state, market_pointer_change(state, payload["market_impact"])) 
     return state
 
 def handle_stock_split(state: GameState, payload: dict) -> GameState:
