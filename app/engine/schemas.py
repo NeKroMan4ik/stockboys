@@ -32,8 +32,9 @@ class Company(IntEnum):
 
 class PriceChange(BaseModel):
     new_price: int
-    old_price: int | None = None
-    diff: float | None = None
+    old_price: int
+    diff_abs: int
+    diff_rel: float
 
 class CharacterName(str, Enum):
     JOHNNY_MUSTARD = "Johnny Mustard"

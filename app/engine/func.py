@@ -71,7 +71,8 @@ def set_market_pointer(state: GameState, new_pointer: int) -> GameState:
 
         change.old_price = old_price
         change.new_price = new_price
-        change.diff = round((new_price - old_price) / old_price * 100, 1)
+        change.diff_abs= new_price - old_price
+        change.diff_rel = round((new_price - old_price) / old_price * 100, 1)
 
     state.market_pointer = new_pointer
     return state

@@ -45,7 +45,8 @@ def create_initial_state(slots: list[PlayerSlot]) -> GameState:
         price_change={c: PriceChange(
             old_price=MARKET[c][pointer],
             new_price=MARKET[c][pointer],
-            diff=0
+            diff_abs=0,
+            diff_rel=0.0,
         ) for c in Company},
     )
 
