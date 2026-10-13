@@ -9,7 +9,7 @@ from app.engine.game import (process_roll, process_pass, process_buy_company_sha
                 process_choose_direction, process_vegas_house, process_trigger_vegas_duel, process_duel_refuse,
                 process_duel_resolve, get_current_player)
 from app.engine.wild_cards import process_card_effect
-from app.engine.schemas import GameState
+from app.engine.schemas import GameState, TurnPhase
 
 from app.ws.ws_manager import connect, disconnect, broadcast, listen
 from app.ws.ws_schemas import WSRequest, WSAction, WSResponse, WSResponseType
@@ -57,8 +57,19 @@ async def ws_endpoint(ws: WebSocket, game_id: str, character: str = Query(...)):
 
                 state = GameState.model_validate_json(raw_state)
 
+                current = get_current_player(state)
+                is_responder = (
+                    state.turn_phase == TurnPhase.WAITING_DUEL_RESPONSE
+                    and state.pending_duel is not None
+                    and state.pending_duel.target_index is not None
+                    and state.players[state.pending_duel.target_index].character == character
+                )
+
                 # player validation
-                if character != get_current_player(state).character:
+                if req.action in (WSAction.VEGAS_DUEL_REFUSE, WSAction.VEGAS_DUEL_RESOLVE):
+                    if not is_responder:
+                        continue
+                elif character != current.character:
                     continue
 
                 match req.action:

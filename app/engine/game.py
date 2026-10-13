@@ -70,11 +70,11 @@ def process_roll(state: GameState) -> GameState:
     current_tile = get_current_tile(state)
 
     # choosing direction
-    if state.chosen_direction is None:
+    if player.chosen_direction is None:
         direction = current_tile.direction.value
     else:
-        direction = state.chosen_direction.value
-        state.chosen_direction = None
+        direction = player.chosen_direction.value
+        player.chosen_direction = None
 
     # movement across the board
     moving_id = player.current_tile_id
@@ -108,7 +108,7 @@ def process_roll(state: GameState) -> GameState:
                 tax = stocks_amount * BROKER_BLACK_THURSDAY_TAX
             
             charge_player(state=state, amount=tax, creditor_index=None)
-            state.turn_phase = TurnPhase.WAITING_ROLL
+            state = pass_turn(state)
                    
         case CellType.COMPANY: # shares
             # pay dividends to all shareholders
@@ -134,7 +134,7 @@ def process_roll(state: GameState) -> GameState:
             
             player.cash += free_lunch_pot_cash
             state.free_lunch_pot -= free_lunch_pot_cash
-            state.turn_phase = TurnPhase.WAITING_ROLL
+            state = pass_turn(state)
 
         case CellType.SHAREHOLDER:
             state.turn_phase = TurnPhase.WAITING_SHAREHOLDER_ROLL
@@ -142,20 +142,22 @@ def process_roll(state: GameState) -> GameState:
         case CellType.REAL_ESTATE:
             tile_owner = get_tile_owner(state, moving_id)
 
-            # can buy real estate if no owner
-            if tile_owner is None and player.cash >= landing_tile.purchase_price:
-                state.turn_phase = TurnPhase.WAITING_REAL_ESTATE_BUY
+            # can buy real estate or do nothing if no owner
+            if tile_owner is None:            
+                if player.cash >= landing_tile.purchase_price:
+                    state.turn_phase = TurnPhase.WAITING_REAL_ESTATE_BUY
+                else:
+                    state = pass_turn(state)
             # nothing happens if the player owns the tile
             elif tile_owner == player:
-                state.turn_phase = TurnPhase.WAITING_ROLL
+                state = pass_turn(state)
             # pays rent if doesn't own that tile unless they have built the tallest tower
             elif tile_owner != player:
                 if not has_tallest_tower(state, player):
                     rent = get_rent(landing_tile, get_floors(tile_owner, moving_id))
                     charge_player(state=state, amount=rent, creditor_index=state.players.index(tile_owner))
-                    state.turn_phase = TurnPhase.WAITING_ROLL
-            else:
-                state.turn_phase = TurnPhase.WAITING_ROLL
+                
+                state = pass_turn(state)
                 
         case CellType.VEGAS:
             state.turn_phase = TurnPhase.WAITING_VEGAS
@@ -166,13 +168,16 @@ def process_roll(state: GameState) -> GameState:
                 state.turn_phase = TurnPhase.WAITING_CARD_EFFECT
 
         case CellType.TROPHY:
-            state.turn_phase = TurnPhase.WAITING_TROPHY_BUY if player.cash >= get_trophy_unit_price(state) else TurnPhase.WAITING_ROLL
+            if player.cash >= get_trophy_unit_price(state):
+                state.turn_phase = TurnPhase.WAITING_TROPHY_BUY 
+            else:
+                state = pass_turn(state)
 
         case CellType.BONUS:
             state.turn_phase = TurnPhase.WAITING_DIRECTION_CHOICE
 
         case _:  # anything that's not covered by the code above
-            state.turn_phase = TurnPhase.WAITING_ROLL
+            state = pass_turn(state)
 
         
     return state
@@ -265,7 +270,8 @@ def process_shareholder_roll(state: GameState, company_id: Company) -> GameState
     return pass_turn(state)
 
 def process_choose_direction(state: GameState, direction: Direction) -> GameState:
-    state.chosen_direction = direction
+    player = get_current_player(state)
+    player.chosen_direction = direction
     return pass_turn(state)
 
 # player actions that can be performed any time during their turn

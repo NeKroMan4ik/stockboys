@@ -96,12 +96,13 @@ def handle_quantitative_easing(state: GameState, payload: dict) -> GameState:
 
 def handle_market_manipulation(state: GameState, payload: dict) -> GameState:
     # +5 or -5
-    state.market_pointer = set_market_pointer(state, market_pointer_change(state, payload["market_impact"])) 
-    return state
+    new_pointer = market_pointer_change(state, payload["market_impact"])
+    return set_market_pointer(state, new_pointer)
 
 def handle_stock_split(state: GameState, payload: dict) -> GameState:
     player = get_current_player(state)
-    player.stocks[Company(payload["company_id"])] *= 2
+    company_id = Company(payload["company_id"])
+    player.stocks[company_id] = player.stocks.get(company_id, 0) * 2
     return state
 
 def handle_bailout(state: GameState, payload: dict) -> GameState:

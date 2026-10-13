@@ -2,6 +2,7 @@ from typing import List, Dict
 from pydantic import BaseModel, Field, field_validator
 from enum import Enum, IntEnum
 
+
 # === PLAYERS ===
 class PenaltyType(str, Enum):
     B = "b"
@@ -46,6 +47,10 @@ class PlayerSlot(BaseModel):
     username: str
     character: CharacterName
 
+class Direction(Enum):
+    LEFT = 1
+    RIGHT = -1
+
 class Player(BaseModel):
     username: str
     character: CharacterName
@@ -56,15 +61,12 @@ class Player(BaseModel):
     properties: List[OwnedProperty] = []
     trophies_owned: int = 0
 
+    chosen_direction: Direction | None = None
     penalties: List[Penalty] = []
     is_bankrupt: bool = False
 
 
 # === BOARD ===
-class Direction(Enum):
-    LEFT = 1
-    RIGHT = -1
-
 class CellType(Enum):
     TAX = "tax"
     COMPANY = "company"
@@ -161,7 +163,6 @@ class GameState(BaseModel):
     # misc
     creditor_index: int | None = None
     pending_card: WildCardType | None = None
-    chosen_direction: Direction | None = None
     winner_index: int | None = None
     pending_duel: PendingDuel | None = None
 

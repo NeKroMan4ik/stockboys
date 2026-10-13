@@ -144,8 +144,11 @@ def get_total_networth_for(state: GameState, player: Player) -> int:
 def get_penalty(player: Player, penalty_type: PenaltyType) -> Penalty | None:
     return next((p for p in player.penalties if p.type == penalty_type), None)
 
-def bankrupt_player(state: GameState, amount: int, creditor_index: int | None) -> GameState:
-    player = get_current_player(state)
+def bankrupt_player(state: GameState, amount: int, creditor_index: int | None, player_index: int | None = None) -> GameState:
+    if player_index is None:
+        player = get_current_player(state)
+    else:
+        player = state.players[player_index]
 
     collected = player.cash
     player.cash = 0
@@ -186,9 +189,11 @@ def charge_player(state: GameState, amount: int, creditor_index: int | None = No
     Starts player bankruptcy process if they don't have enough cash
     '''
     if isinstance(target_player_index, int):
-        target = get_target_player(state, target_player_index)
+        target_idx = target_player_index
     elif target_player_index is None:
-        target = get_current_player(state)
+        target_idx = state.current_turn_index
+
+    target = state.players[target_idx]
 
     if target.cash >= amount:
         target.cash -= amount
@@ -197,7 +202,7 @@ def charge_player(state: GameState, amount: int, creditor_index: int | None = No
         else:
             state.free_lunch_pot += amount
     else:
-        bankrupt_player(state, amount, creditor_index)
+        bankrupt_player(state, amount, creditor_index, target_idx)
 
     return state
 
