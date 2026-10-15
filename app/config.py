@@ -5,6 +5,7 @@ from functools import lru_cache
 class AppSettings(BaseModel):
     host: str = "localhost"
     port: int = 10808
+    cors_origins: list[str] = ["http://localhost:5173"]
     debug: bool = False
 
 class RedisSettings(BaseModel):
