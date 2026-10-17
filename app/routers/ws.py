@@ -105,6 +105,7 @@ async def ws_endpoint(ws: WebSocket, game_id: str, character: str = Query(...)):
         await client.set(game_id, new_state.model_dump_json(), ex=settings.redis.game_ttl_seconds)
         response = WSResponse(type=WSResponseType.STATE_UPDATE, game_state=new_state)
         await broadcast(game_id, response.model_dump_json())
+        return True
 
     async def handle_client():
         try:
