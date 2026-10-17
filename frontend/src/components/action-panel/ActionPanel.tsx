@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type JSX } from "react";
 
 import type { ScreenProps, SendFn } from "../../types";
 import { PanelButton, PanelFrame, playerLabel } from "./shared/PanelFrame";
