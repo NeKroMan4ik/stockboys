@@ -11,6 +11,7 @@ class AppSettings(BaseModel):
 class RedisSettings(BaseModel):
     host: str = "localhost"
     port: int = 6379
+    url: str | None = None
     db: int = 0
     game_ttl_seconds: int | None = 43200 # 12 hours in seconds
 

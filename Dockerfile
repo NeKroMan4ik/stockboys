@@ -1,3 +1,15 @@
+FROM node:22-alpine AS frontend
+
+WORKDIR /build
+
+COPY frontend/package*.json frontend/
+RUN cd frontend && npm ci
+
+COPY frontend frontend
+COPY app/engine/data app/engine/data
+RUN cd frontend && npm run build
+
+
 FROM python:3.13-slim AS builder
 
 ENV POETRY_NO_INTERACTION=1 \
@@ -25,9 +37,10 @@ WORKDIR /app
 
 COPY --from=builder /app/.venv /app/.venv
 COPY app ./app
+COPY --from=frontend /build/frontend/dist ./static
 
 USER app
 
 EXPOSE 10808
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "10808"]
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10808}"]
