@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import type { ScreenProps, SendFn } from "./types";
+import type { ScreenProps, SendFn } from "../../types";
 import { PanelButton, PanelFrame, playerLabel } from "./shared/PanelFrame";
 import { BuySharesScreen } from "./screens/BuySharesScreen";
 import { DirectionScreen } from "./screens/DirectionScreen";

@@ -1,7 +1,7 @@
 import { money } from "../../game/format";
 import { netWorthParts } from "../../game/rules";
 import type { PlayerState } from "../../game/types";
-import type { ScreenProps } from "../types";
+import type { ScreenProps } from "../../../types";
 import { PanelButton, PanelFrame, playerLabel } from "../shared/PanelFrame";
 
 export function WinScreen({

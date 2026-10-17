@@ -4,7 +4,7 @@ import { emptyBet, isBetEmpty, isBetValid } from "../../game/bets";
 import { DUEL_REFUSE_FINE } from "../../game/rules";
 import { money } from "../../game/format";
 import type { Bet, PlayerState } from "../../game/types";
-import type { SendFn } from "../types";
+import type { SendFn } from "../../../types";
 import { BetBuilder } from "../shared/BetBuilder";
 import { PanelButton, PanelFrame } from "../shared/PanelFrame";
 import { PlayerPicker } from "../shared/PlayerPicker";

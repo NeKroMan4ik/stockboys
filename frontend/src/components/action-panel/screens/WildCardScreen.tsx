@@ -5,7 +5,7 @@ import { money } from "../../game/format";
 import { MARKET_MAX, MAX_FLOORS_PER_TILE, clampPointer, floorsRemaining, stockPrice } from "../../game/rules";
 import type { PlayerState } from "../../game/types";
 import { CARD_INFO, DECISION_CARDS } from "../../game/wildCards";
-import type { ScreenProps, SendFn } from "../types";
+import type { ScreenProps, SendFn } from "../../../types";
 import { ChoiceButton } from "../shared/ChoiceButton";
 import { CompanyPicker } from "../shared/CompanyPicker";
 import { PanelButton, PanelFrame, playerLabel } from "../shared/PanelFrame";

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { COMPANY_IDS, COMPANY_NAMES } from "../../game/companies";
 import { money } from "../../game/format";
 import { stockPrice } from "../../game/rules";
-import type { ScreenProps } from "../types";
+import type { ScreenProps } from "../../../types";
 import { CompanyPicker } from "../shared/CompanyPicker";
 import { PanelButton, PanelFrame, playerLabel } from "../shared/PanelFrame";
 import { Row } from "../shared/Row";

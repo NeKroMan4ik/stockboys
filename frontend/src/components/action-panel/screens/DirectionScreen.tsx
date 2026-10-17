@@ -1,5 +1,5 @@
 import { locate, screenDirection, type ScreenDirection } from "../../game/boardLayout";
-import type { ScreenProps } from "../types";
+import type { ScreenProps } from "../../../types";
 import { PanelFrame, playerLabel } from "../shared/PanelFrame";
 
 const TITLE = "Бонусная клетка: выберите направление";

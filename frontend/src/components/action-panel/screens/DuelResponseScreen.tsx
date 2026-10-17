@@ -1,6 +1,6 @@
 import { money } from "../../game/format";
 import { DUEL_REFUSE_FINE } from "../../game/rules";
-import type { ScreenProps } from "../types";
+import type { ScreenProps } from "../../../types";
 import { BetSummary } from "../shared/BetSummary";
 import { PanelButton, PanelFrame, playerLabel } from "../shared/PanelFrame";
 

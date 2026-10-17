@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 
 import { playerLabel } from "../action-panel/shared/PanelFrame";
 import { QuantityPicker } from "../action-panel/shared/QuantityPicker";
-import type { SendFn } from "../action-panel/types";
+import type { SendFn } from "../../types";
 import { COMPANY_IDS, COMPANY_NAMES } from "../game/companies";
 import { money } from "../game/format";
 import { FLOOR_PRICE, MAX_FLOORS_PER_TILE, floorsRemaining, netWorthParts, stockPrice, trophyPrice } from "../game/rules";

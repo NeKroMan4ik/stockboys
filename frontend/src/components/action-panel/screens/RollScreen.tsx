@@ -1,4 +1,4 @@
-import type { ScreenProps } from "../types";
+import type { ScreenProps } from "../../../types";
 import { PanelButton, PanelFrame, playerLabel } from "../shared/PanelFrame";
 
 export function RollScreen({ gameState, isMyTurn, busy, onAction }: ScreenProps) {

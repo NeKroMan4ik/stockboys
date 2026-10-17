@@ -1,6 +1,6 @@
 import { money } from "../../game/format";
 import { totalTrophies, trophyPrice, trophyPriceAfterBuy } from "../../game/rules";
-import type { ScreenProps } from "../types";
+import type { ScreenProps } from "../../../types";
 import { PanelButton, PanelFrame, playerLabel } from "../shared/PanelFrame";
 import { Row } from "../shared/Row";
 

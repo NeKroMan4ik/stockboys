@@ -1,6 +1,6 @@
 import { money } from "../../game/format";
 import { BASE_RENT_TIERS, FLOOR_PRICE, TOTAL_FLOORS, floorsRemaining, rentFor } from "../../game/rules";
-import type { ScreenProps } from "../types";
+import type { ScreenProps } from "../../../types";
 import { PanelButton, PanelFrame, playerLabel } from "../shared/PanelFrame";
 import { Row } from "../shared/Row";
 

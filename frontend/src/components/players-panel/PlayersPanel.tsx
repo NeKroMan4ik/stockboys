@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import type { SendFn } from "../action-panel/types";
+import type { SendFn } from "../../types";
 import { PlayerCard } from "./PlayerCard";
 
 const BUSY_TIMEOUT_MS = 5000;

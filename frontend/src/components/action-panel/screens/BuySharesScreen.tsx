@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { money } from "../../game/format";
-import type { ScreenProps } from "../types";
+import type { ScreenProps } from "../../../types";
 import { PanelButton, PanelFrame, playerLabel } from "../shared/PanelFrame";
 import { QuantityPicker } from "../shared/QuantityPicker";
 import { Row } from "../shared/Row";
