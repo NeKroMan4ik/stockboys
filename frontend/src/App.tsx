@@ -13,6 +13,8 @@ import { Token, type Point } from "./components/Token";
 import { locate, moveArrow } from "./components/game/boardLayout";
 import { tokenHex } from "./components/game/tokenColors";
 
+import { EventLog } from "./components/event-log/EventLog";
+
 import { CornerTile } from "./components/tiles/CornerTile";
 import { RegularTile } from "./components/tiles/RegularTile";
 import { RealEstateTile } from "./components/tiles/RealEstateTile";
@@ -381,7 +383,7 @@ function GameView({ gameId, playerName, onExit }: { gameId: string; playerName: 
             {board && (
               <PlayersPanel gameState={gameState} playerName={playerName} tiles={board.tiles} send={send} />
             )}
-            {/* Event log tba */}
+            {board && <EventLog log={gameState.log ?? []} players={gameState.players} tiles={board.tiles} />}
           </div>
         </aside>
 
