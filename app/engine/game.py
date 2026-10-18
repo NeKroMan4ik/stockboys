@@ -20,7 +20,7 @@ from app.engine.func import (
     has_tallest_tower, get_penalty, bankrupt_blocker, 
     charge_player, check_win_condition, pass_turn, 
     get_target_player, validate_equity, transfer_equity,
-    set_market_pointer
+    set_market_pointer, add_log
 )
 
 
@@ -57,14 +57,16 @@ def process_roll(state: GameState) -> GameState:
 
     player = get_current_player(state)
     state.last_dice = roll()
+    add_log(state, "roll", dice=state.last_dice[:2])
 
     # if double bankrupt players receive 1000 until they get 2000
     if is_double(state.last_dice):
-        for p in state.players:
+        for i, p in enumerate(state.players):
             if p.is_bankrupt:
                 p.cash += 1000
                 if p.cash >= 2000:
                     p.is_bankrupt = False
+                add_log(state, "bankrupt_aid", player=i, amount=1000, recovered=not p.is_bankrupt)
 
     board_size = len(BOARD)
     current_tile = get_current_tile(state)
@@ -82,13 +84,17 @@ def process_roll(state: GameState) -> GameState:
         moving_id = (moving_id + direction) % board_size
         if BOARD[moving_id].is_bonus_tile:
             if get_penalty(player, PenaltyType.B):
-                player.cash += round(BONUS_AMOUNT / 2)
+                bonus = round(BONUS_AMOUNT / 2)
             else:
-                player.cash += BONUS_AMOUNT
+                bonus = BONUS_AMOUNT
+
+            player.cash += bonus
+            add_log(state, "bonus_passed", amount=bonus)
 
         player.current_tile_id = moving_id
 
     landing_tile = BOARD[moving_id]
+    add_log(state, "landed", tile_id=moving_id)
 
     # market change
     tile_market_impact = landing_tile.market_impact
@@ -117,10 +123,12 @@ def process_roll(state: GameState) -> GameState:
             if company_id is not None:
                 if landing_tile.dividends is not None:
                     div_per_share = landing_tile.dividends
-                    for p in state.players:
+                    for i, p in enumerate(state.players):
                         shares = p.stocks.get(company_id, 0)
                         if shares:
-                            p.cash += shares * div_per_share
+                            payout = shares * div_per_share
+                            p.cash += payout
+                            add_log(state, "dividend", player=i, company_id=int(company_id), amount=payout)
                             state = check_win_condition(state)
 
             state.turn_phase = TurnPhase.WAITING_COMPANY_BUY
@@ -134,6 +142,7 @@ def process_roll(state: GameState) -> GameState:
             
             player.cash += free_lunch_pot_cash
             state.free_lunch_pot -= free_lunch_pot_cash
+            add_log(state, "free_lunch", amount=free_lunch_pot_cash)
             state = pass_turn(state)
 
         case CellType.SHAREHOLDER:
@@ -156,6 +165,8 @@ def process_roll(state: GameState) -> GameState:
                 if not has_tallest_tower(state, player):
                     rent = get_rent(landing_tile, get_floors(tile_owner, moving_id))
                     charge_player(state=state, amount=rent, creditor_index=state.players.index(tile_owner))
+                else:
+                    add_log(state, "rent_waived", tile_id=moving_id, owner=state.players.index(tile_owner))
                 
                 state = pass_turn(state)
                 
@@ -203,6 +214,8 @@ def process_buy_company_shares(state: GameState, amount: int) -> GameState:
         else:
             player.stocks[tile.company_id] = amount
 
+        add_log(state, "buy_shares", company_id=int(tile.company_id), amount=amount, price=stock_price)
+
     return pass_turn(state)
 
 @bankrupt_blocker
@@ -212,14 +225,17 @@ def process_buy_real_estate(state: GameState) -> GameState:
 
     player.cash -= BOARD[player.current_tile_id].purchase_price
     player.properties.append(OwnedProperty(tile_id=tile.tile_id, floors=0))
+    add_log(state, "buy_property", tile_id=tile.tile_id, price=tile.purchase_price)
     
     return pass_turn(state)
 
 @bankrupt_blocker
 def process_trophy_buy(state: GameState) -> GameState:
     player = get_current_player(state)
-    player.cash -= get_trophy_unit_price(state)
+    price = get_trophy_unit_price(state)
+    player.cash -= price
     player.trophies_owned += 1
+    add_log(state, "buy_trophy", price=price)
 
     return pass_turn(state)
 
@@ -232,6 +248,8 @@ def process_vegas_house(state: GameState, payload: dict) -> GameState:
     if not validate_equity(player, {"cash": player_bet, "trophies": 0, "stocks": []}):
         return state
     
+    add_log(state, "vegas_house", bet=player_bet, dice=player_dice[2], won=player_dice[2] > 7)
+
     if player_dice[2] > 7:
         player.cash += floor(player_bet * 1.5)
     else:
@@ -253,6 +271,14 @@ def process_trigger_vegas_duel(state: GameState, payload: dict) -> GameState:
         state.turn_phase = TurnPhase.WAITING_VEGAS
         return state
 
+    add_log(
+        state,
+        "duel_challenge",
+        target=payload["target_index"],
+        initiator_bet=state.pending_duel.initiator_bet,
+        target_bet=state.pending_duel.target_bet,
+    )
+
     state.turn_phase = TurnPhase.WAITING_DUEL_RESPONSE
     return state
 
@@ -266,12 +292,14 @@ def process_shareholder_roll(state: GameState, company_id: Company) -> GameState
 
         die = randint(1, 6)
         player.stocks[company_id] *= die
+        add_log(state, "shareholder", company_id=int(company_id), die=die, shares=player.stocks[company_id])
 
     return pass_turn(state)
 
 def process_choose_direction(state: GameState, direction: Direction) -> GameState:
     player = get_current_player(state)
     player.chosen_direction = direction
+    add_log(state, "direction", direction=Direction(direction).value)
     return pass_turn(state)
 
 # player actions that can be performed any time during their turn
@@ -286,6 +314,7 @@ def process_build_floors(state: GameState, tile_id: int) -> GameState:
                 if prop and prop.floors < 5:
                     player.cash -= FLOOR_PRICE
                     prop.floors += 1
+                    add_log(state, "build_floor", tile_id=tile_id, floors=prop.floors)
                     return state
                 
     return check_win_condition(state)
@@ -297,12 +326,16 @@ def process_sell_company_shares(state: GameState, company_id: Company, amount: i
     if amount <= player.stocks.get(company_id, 0):
         player.cash += amount * stock_price
         player.stocks[company_id] -= amount
+        add_log(state, "sell_shares", company_id=int(company_id), amount=amount, price=stock_price)
 
     return check_win_condition(state)
 
 def process_duel_resolve(state: GameState) -> GameState:
     player = get_current_player(state)
     target = get_target_player(state, state.pending_duel.target_index)
+
+    initiator_index = state.pending_duel.initiator_index
+    target_index = state.pending_duel.target_index
 
     player_roll = roll()[2]
     target_roll = roll()[2]
@@ -312,13 +345,19 @@ def process_duel_resolve(state: GameState) -> GameState:
         target_roll = roll()[2]
 
     if player_roll > target_roll:
+        winner, loser = initiator_index, target_index
+        bet = state.pending_duel.target_bet
         player, target = transfer_equity(target, player, state.pending_duel.target_bet)
     else:
+        winner, loser = target_index, initiator_index
+        bet = state.pending_duel.initiator_bet
         player, target = transfer_equity(player, target, state.pending_duel.initiator_bet)
+
+    add_log(state, "duel_result", player=winner, winner=winner, loser=loser, bet=bet, rolls=[player_roll, target_roll])
 
     return pass_turn(state)
 
 def process_duel_refuse(state: GameState) -> GameState:
+    add_log(state, "duel_refused", player=state.pending_duel.target_index)
     charge_player(state=state, amount=500, target_player_index=state.pending_duel.target_index)
     return pass_turn(state)
-

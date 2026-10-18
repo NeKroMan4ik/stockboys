@@ -134,6 +134,12 @@ class PendingDuel(BaseModel):
 
 
 # === GAMESTATE ===
+class LogEntry(BaseModel):
+    seq: int
+    type: str
+    player: int | None = None
+    data: dict = {}
+
 class TurnPhase(str, Enum):
     WAITING_ROLL = "waiting_roll"
     WAITING_COMPANY_BUY = "waiting_company_buy"
@@ -159,6 +165,10 @@ class GameState(BaseModel):
     # market
     market_pointer: int
     price_change: dict[Company, PriceChange] 
+
+    #logs
+    log: list[LogEntry] = []
+    log_seq: int = 0
 
     # misc
     creditor_index: int | None = None

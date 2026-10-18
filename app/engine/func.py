@@ -5,8 +5,23 @@ from app.engine.constants import BASE_TROPHY_COST, BASE_RENT_TIERS, REFERENCE_PR
 from app.engine.schemas import (
     Player, Penalty, PenaltyType, 
     GameState, TurnPhase, BoardTile, 
-    PendingDuel, Company, PriceChange
+    PendingDuel, LogEntry
 )
+
+LOG_LIMIT = 150
+
+
+def add_log(state: GameState, type: str, player: int | None = None, **data) -> None:
+    state.log_seq += 1
+    state.log.append(LogEntry(
+        seq=state.log_seq,
+        type=type,
+        player=state.current_turn_index if player is None else player,
+        data=data,
+    ))
+
+    if len(state.log) > LOG_LIMIT:
+        del state.log[:-LOG_LIMIT]
 
 
 def market_pointer_change(state: GameState, impact: int) -> int: 
@@ -75,6 +90,7 @@ def set_market_pointer(state: GameState, new_pointer: int) -> GameState:
         change.diff_rel = round((new_price - old_price) / old_price * 100, 1)
 
     state.market_pointer = new_pointer
+    add_log(state, "market", delta=new_pointer - old_pointer, pointer=new_pointer)
     return state
 
 def has_tallest_tower(state: GameState, player: Player) -> bool:
@@ -146,9 +162,9 @@ def get_penalty(player: Player, penalty_type: PenaltyType) -> Penalty | None:
 
 def bankrupt_player(state: GameState, amount: int, creditor_index: int | None, player_index: int | None = None) -> GameState:
     if player_index is None:
-        player = get_current_player(state)
-    else:
-        player = state.players[player_index]
+        player_index = state.current_turn_index
+
+    player = state.players[player_index]
 
     collected = player.cash
     player.cash = 0
@@ -171,6 +187,8 @@ def bankrupt_player(state: GameState, amount: int, creditor_index: int | None, p
         state.players[creditor_index].cash += payout
     else:
         state.free_lunch_pot += payout
+
+    add_log(state, "bankrupt", player=player_index, owed=amount, paid=payout, to=creditor_index)
 
     player.current_tile_id = START_LANDING_MAP[player.character]
     player.is_bankrupt = True
@@ -201,6 +219,9 @@ def charge_player(state: GameState, amount: int, creditor_index: int | None = No
             state.players[creditor_index].cash += amount
         else:
             state.free_lunch_pot += amount
+
+        if amount > 0:
+            add_log(state, "paid", player=target_idx, amount=amount, to=creditor_index)
     else:
         bankrupt_player(state, amount, creditor_index, target_idx)
 
@@ -256,6 +277,9 @@ def check_win_condition(state: GameState) -> GameState:
             if get_total_networth_for(state, p) >= 100000:
                 state.winner_index = state.players.index(p)
 
+        if state.winner_index is not None:
+            add_log(state, "win", player=state.winner_index)
+
     return state
 
 def pass_turn(state: GameState) -> GameState:
@@ -269,6 +293,9 @@ def pass_turn(state: GameState) -> GameState:
 
     if not is_double(state.last_dice):          
         state.current_turn_index = (state.current_turn_index + 1) % len(state.players)
+        add_log(state, "turn_start")
+    else:
+        add_log(state, "double_again")
 
     return state
 
@@ -283,4 +310,3 @@ def bankrupt_blocker(func):
             return state
         return func(state, *args, **kwargs)
     return wrapper
-

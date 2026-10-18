@@ -7,7 +7,7 @@ from app.engine.schemas import WildCard, WildCardType, GameState, Company, Penal
 from app.engine.func import (
     get_current_player, get_stock_price, get_target_player, get_tile_owner,
     get_floors_remaining, market_pointer_change, pass_turn, get_penalty,
-    set_market_pointer
+    set_market_pointer, add_log
 )
 
 # handlers
@@ -239,6 +239,8 @@ CARD_HANDLERS: dict[WildCardType, Callable[[GameState, dict], GameState]] = {
     WildCardType.INSURANCE: handle_insurance,
 }
 
+CARD_LOG_FIELDS = ("target_player_index", "company_id", "tile_id", "market_impact")
+
 def process_card_effect(state: GameState, payload: dict) -> GameState:
     if state.pending_card is None:
         return state
@@ -251,8 +253,13 @@ def process_card_effect(state: GameState, payload: dict) -> GameState:
 
         if insurance:
             target.penalties.remove(insurance)
+            add_log(state, "insurance_blocked", player=payload["target_player_index"], card=state.pending_card.value)
             state.pending_card = None
             return pass_turn(state)
+
+    if not card.is_immediate:
+        details = {key: payload[key] for key in CARD_LOG_FIELDS if key in payload}
+        add_log(state, "card_played", card=state.pending_card.value, **details)
 
     state = CARD_HANDLERS[state.pending_card](state, payload)
     state.pending_card = None
@@ -262,9 +269,9 @@ def process_card_effect(state: GameState, payload: dict) -> GameState:
 def draw_wild_card(state: GameState) -> GameState:
     card = choices(population=WILD_CARDS, weights=[c.weight for c in WILD_CARDS], k=1)[0]
     state.pending_card = card.type
+    add_log(state, "card_drawn", card=card.type.value)
 
     if card.is_immediate:
         state = process_card_effect(state, {})
 
     return state
-
